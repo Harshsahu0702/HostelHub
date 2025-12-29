@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Building,
@@ -46,6 +46,7 @@ const AdminDashboard = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const location = useLocation();
+  const navigate = useNavigate();
   const profileWrapperRef = useRef(null);
 
   const loggedInEmail =
@@ -85,6 +86,16 @@ const AdminDashboard = () => {
     };
   }, [loggedInEmail]);
 
+  // 🔹 Route protection - redirect if no token or admin email
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const adminEmail = localStorage.getItem('adminEmail');
+
+    if (!token || !adminEmail) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+
   // 🔹 SAME outside click handler
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -104,6 +115,12 @@ const AdminDashboard = () => {
       ...prev,
       [menuId]: !prev[menuId],
     }));
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('adminEmail');
+    navigate('/');
   };
 
   // 🔹 SAME MENU CONFIG
@@ -248,7 +265,7 @@ const AdminDashboard = () => {
           </nav>
 
           <div className="sidebar-footer">
-            <button className="btn-logout">
+            <button className="btn-logout" onClick={handleLogout}>
               <LogOut />
               <span>Logout</span>
             </button>

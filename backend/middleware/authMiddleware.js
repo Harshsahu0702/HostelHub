@@ -17,8 +17,8 @@ const authMiddleware = (req, res, next) => {
 
     req.user = {
       id: decoded.id,
-      role: decoded.role,
-      hostelId: decoded.hostelId, 
+      role: decoded.role,          // "student" | "admin"
+      hostelId: decoded.hostelId,  // REQUIRED for chat
     };
 
     next();

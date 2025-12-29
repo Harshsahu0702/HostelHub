@@ -2,6 +2,29 @@ const StudentRegistration = require("../models/StudentRegistration");
 const { v4: uuidv4 } = require("uuid");
 const QRCode = require("qrcode");
 
+exports.getStudentQR = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const student = await StudentRegistration.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const qrImage = await QRCode.toDataURL(student.qrToken);
+
+    res.status(200).json({
+      success: true,
+      qrImage,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// ================= REGISTER A NEW STUDENT =================
+// (PUBLIC – called by admin panel, hostelId must come from req.body or req.user)
 exports.registerStudent = async (req, res) => {
   try {
     const {
@@ -81,6 +104,8 @@ exports.registerStudent = async (req, res) => {
   }
 };
 
+// ================= GET ALL STUDENTS =================
+// (PROTECTED – hostel-based data)
 exports.getAllStudents = async (req, res) => {
   try {
     const students = await StudentRegistration.find(
@@ -98,6 +123,38 @@ exports.getAllStudents = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching students",
+      error: error.message,
+    });
+  }
+};
+
+// ================= GET SINGLE STUDENT BY ID =================
+// (PROTECTED – hostel-based + id-based)
+exports.getStudentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const student = await StudentRegistration.findOne(
+      { _id: id, hostelId: req.user.hostelId }, // ✅ DOUBLE CHECK
+      { password: 0 }
+    );
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: student,
+    });
+  } catch (error) {
+    console.error("Error fetching student by id:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching student",
       error: error.message,
     });
   }

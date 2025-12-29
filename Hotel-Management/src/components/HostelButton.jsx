@@ -8,7 +8,7 @@ const AccessCodeModal = ({ isOpen, onClose }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (accessCode === '17102006') {
+    if (accessCode === '100') {
       navigate('/hostel-setup');
       onClose();
     } else {
@@ -97,6 +97,7 @@ const AccessCodeModal = ({ isOpen, onClose }) => {
             fontSize: '0.9rem',
             textAlign: 'center',
           }}>{error}</p>}
+          <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>For Judging - code=100</p>
           <button type="submit" style={{
             padding: '12px',
             borderRadius: '8px',

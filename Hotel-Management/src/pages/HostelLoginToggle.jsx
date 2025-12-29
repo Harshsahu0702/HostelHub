@@ -1,17 +1,18 @@
 import React, { useState, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import "./DesktopLogin.css";
+import "./HostelLoginToggle.css";
 import Header from "../components/Header";
 import Hyperspeed from "../components/Hyperspeed";
 import { hyperspeedPresets } from "../components/hyperspeedPresets";
+import HowItWorks from "./HowItWorksSection";
 import WhyChooseSection from "../components/WhyChooseSection";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import HostelButton from "../components/Hostelbutton";
+import HostelButton from "../components/HostelButton"
 import Contact from "../components/Contact";
-import ScrollIndicator from "../components/scrollIndicator";
+import ScrollIndicator from "../components/ScrollIndicator";
 
-export default function DesktopLogin() {
+export default function HostelLoginToggle() {
   const navigate = useNavigate();
   const [mode, setMode] = useState("student");
   
@@ -219,7 +220,10 @@ localStorage.setItem("adminEmail", adminCreds.email);
       
     </div>
 
-    {/* SCROLL → WHY CHOOSE HOSTEL-HUB SECTION (CURVED TOP) */}
+    {/* HOW IT WORKS SECTION */}
+    <HowItWorks />
+
+    {/* WHY CHOOSE HOSTEL-HUB SECTION (CURVED TOP) */}
     <WhyChooseSection />
   </>
 );

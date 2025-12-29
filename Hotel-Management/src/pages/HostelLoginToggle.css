@@ -353,8 +353,37 @@ body {
   min-height: 48px;
 }
 
-.form-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+/* Placeholder styles with higher specificity */
+.form-card .form-group .form-input::placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  font-size: 14px !important;
+}
+
+/* Chrome/Opera/Safari */
+.form-card .form-group .form-input::-webkit-input-placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* Firefox 19+ */
+.form-card .form-group .form-input::-moz-placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* IE 10+ */
+.form-card .form-group .form-input:-ms-input-placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+/* Firefox 18- */
+.form-card .form-group .form-input:-moz-placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
 }
 
 .form-input:focus {

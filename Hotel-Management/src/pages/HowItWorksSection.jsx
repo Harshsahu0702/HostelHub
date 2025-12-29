@@ -1,4 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { FaBuilding, FaUserCog, FaUserGraduate, FaArrowRight } from 'react-icons/fa';
+import { BsBuilding, BsFillPersonCheckFill } from 'react-icons/bs';
+import { RiAdminFill } from 'react-icons/ri';
 
 /**
  * HowItWorks Component
@@ -32,37 +35,28 @@ const HowItWorks = () => {
       id: "01",
       title: "Hostel Setup",
       description: "Apne hostel ka profile banayein aur secure admin credentials generate karein digital management shuru karne ke liye.",
-      icon: (
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
-      )
+      icon: <BsBuilding className="step-icon" />,
+      color: 'linear-gradient(135deg, rgba(167, 139, 250, 0.2), rgba(99, 102, 241, 0.2))',
+      iconColor: '#8b5cf6',
+      borderColor: 'rgba(139, 92, 246, 0.5)'
     },
     {
       id: "02",
       title: "Admin Operations",
       description: "Admin login karke students ko register karein aur real-time availability ke hisaab se rooms allot karein.",
-      icon: (
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="8.5" cy="7" r="4" />
-          <line x1="20" y1="8" x2="20" y2="14" />
-          <line x1="17" y1="11" x2="23" y2="11" />
-        </svg>
-      )
+      icon: <RiAdminFill className="step-icon" />,
+      color: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(219, 39, 119, 0.2))',
+      iconColor: '#ec4899',
+      borderColor: 'rgba(236, 72, 153, 0.5)'
     },
     {
       id: "03",
       title: "Student Portal",
       description: "Students apne dashboard se room details aur updates dekh sakte hain aur administration se digitally jude reh sakte hain.",
-      icon: (
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-          <line x1="8" y1="21" x2="16" y2="21" />
-          <line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
-      )
+      icon: <BsFillPersonCheckFill className="step-icon" />,
+      color: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2))',
+      iconColor: '#10b981',
+      borderColor: 'rgba(16, 185, 129, 0.5)'
     }
   ];
 
@@ -192,18 +186,19 @@ const HowItWorks = () => {
       position: 'relative'
     },
     iconCircle: {
-      width: '85px',
-      height: '85px',
-      borderRadius: '24px', 
-      backgroundColor: 'rgba(59, 130, 246, 0.15)',
-      color: colors.secondary,
+      width: '100px',
+      height: '100px',
+      borderRadius: '50%', 
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: '35px',
-      border: `1px solid rgba(59, 130, 246, 0.3)`,
-      boxShadow: '0 0 30px rgba(59, 130, 246, 0.15)',
-      transform: 'rotateZ(-5deg)'
+      marginBottom: '30px',
+      transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+      willChange: 'transform, box-shadow',
+      transform: 'translateZ(0)',
+      position: 'relative',
+      overflow: 'hidden',
+      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
     },
     cardTitle: {
       fontSize: '1.65rem',
@@ -276,6 +271,29 @@ const HowItWorks = () => {
                   min-height: 420px;
                 }
               }
+              .workflow-card:hover {
+                transform: translateY(-10px) scale(1.02) !important;
+                border-color: ${colors.primary} !important;
+                background: rgba(17, 24, 39, 0.8) !important;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+                backdrop-filter: blur(16px);
+              }
+              
+              .workflow-card:hover .icon-box {
+                transform: scale(1.1) rotate(5deg);
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+              }
+              
+              .step-icon {
+                font-size: 2.5rem;
+                transition: all 0.3s ease;
+                filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+              }
+              
+              .workflow-card:hover .step-icon {
+                transform: scale(1.15);
+                filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
+              }
             `}
           </style>
 
@@ -290,8 +308,29 @@ const HowItWorks = () => {
                   transitionDelay: `${index * 0.1}s`
                 }}
               >
-                <div className="icon-box" style={{...styles.iconCircle, transition: 'all 0.4s ease'}}>
-                  {step.icon}
+                <div className="icon-box" style={{
+                  ...styles.iconCircle,
+                  background: step.color,
+                  border: `1px solid ${step.borderColor}`,
+                  transform: 'rotateZ(-5deg)'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                    color: step.iconColor,
+                    fontSize: '2.5rem',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    {React.cloneElement(step.icon, { 
+                      style: { 
+                        filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2))',
+                        transition: 'all 0.3s ease'
+                      } 
+                    })}
+                  </div>
                 </div>
                 <h3 style={styles.cardTitle}>{step.title}</h3>
                 <p style={styles.cardDesc}>{step.description}</p>

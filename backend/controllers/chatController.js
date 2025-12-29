@@ -1,6 +1,13 @@
 const ChatMessage = require("../models/ChatMessage");
 const Admin = require("../models/Admin");
 
+/**
+ * =========================
+ * PERSONAL CHAT
+ * =========================
+ */
+
+// Send personal message (student ↔ admin ONLY)
 exports.sendPersonalMessage = async (req, res) => {
   try {
     const { receiverId, text } = req.body;
@@ -68,6 +75,49 @@ exports.getPersonalMessages = async (req, res) => {
   }
 };
 
+/**
+ * =========================
+ * GROUP CHAT
+ * =========================
+ */
+
+// Send group message (student OR admin)
+exports.sendGroupMessage = async (req, res) => {
+  try {
+    const { text } = req.body;
+    const { id, role, hostelId } = req.user;
+
+    if (!text) {
+      return res.status(400).json({
+        success: false,
+        message: "Text is required",
+      });
+    }
+
+    const message = await ChatMessage.create({
+      hostelId,
+      chatType: "group",
+      senderType: role,
+      senderId: id,
+      text,
+    });
+
+    // 🔥 REAL-TIME EMIT (to hostel room)
+    req.io.to(hostelId.toString()).emit("groupMessage", message);
+
+    res.status(201).json({
+      success: true,
+      data: message,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Get group messages (hostel scoped)
 exports.getGroupMessages = async (req, res) => {
   try {
     const { hostelId } = req.user;

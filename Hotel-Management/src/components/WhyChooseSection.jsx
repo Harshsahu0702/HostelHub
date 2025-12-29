@@ -2,27 +2,32 @@ import React from "react";
 import { useEffect, useRef } from "react";
 import "./WhyChooseSection.css";
 import Ballpit from "./Ballpit/Ballpit";
+import { FaRocket, FaUtensils, FaUserGraduate, FaCog } from "react-icons/fa";
 
 const features = [
   {
     title: "Fast Room Allotment",
     description: "Automated room allocation removes manual errors and saves time.",
-    icon: "🚀",
+    icon: <FaRocket className="feature-icon" />,
+    color: "#8b5cf6"
   },
   {
     title: "Smart Mess Management",
     description: "Daily attendance, meal tracking, and transparent billing.",
-    icon: "🍽️",
+    icon: <FaUtensils className="feature-icon" />,
+    color: "#ec4899"
   },
   {
     title: "Student Dashboard",
     description: "Students can view dues, notices, mess status, and ID details.",
-    icon: "📊",
+    icon: <FaUserGraduate className="feature-icon" />,
+    color: "#10b981"
   },
   {
     title: "Admin Control Panel",
     description: "Manage everything from one centralized dashboard.",
-    icon: "🎛️",
+    icon: <FaCog className="feature-icon" />,
+    color: "#3b82f6"
   },
 ];
 
@@ -76,7 +81,9 @@ export default function WhyChooseSection() {
         <div className="why-grid">
           {features.map((feature, index) => (
             <div key={index} className="why-card">
-              <div className="card-icon">{feature.icon}</div>
+              <div className="card-icon" style={{ color: feature.color }}>
+                {feature.icon}
+              </div>
               <h3>{feature.title}</h3>
               <p>{feature.description}</p>
             </div>

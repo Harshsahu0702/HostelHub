@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Sidebar from "./components/Sidebar.jsx";
 
@@ -21,6 +22,17 @@ import "./styles/global.css";
 export default function StudentPanel() {
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+
+  // 🔹 Route protection - redirect if no token or student data
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const studentData = localStorage.getItem('studentData');
+
+    if (!token || !studentData) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
 
   const renderContent = () => {
     switch (activePage) {
@@ -33,8 +45,8 @@ export default function StudentPanel() {
       case "fees": return <Fees />;
       case "chat": return <Chat />;
       case "feedback": return <Feedback />;
-      case "attendance": 
-      return <StudentAttendanceView />;
+      case "attendance":
+        return <StudentAttendanceView />;
       default: return <Dashboard setActivePage={setActivePage} />;
     }
   };
@@ -47,12 +59,12 @@ export default function StudentPanel() {
     <div className="app-container">
       {/* Sidebar Overlay - Only visible on mobile when sidebar is open */}
       {sidebarOpen && (
-        <div 
+        <div
           className={`sidebar-overlay ${sidebarOpen ? 'open' : ''}`}
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      
+
       <Sidebar
         activePage={activePage}
         setActivePage={(page) => {

@@ -1,10 +1,13 @@
 import React from 'react';
-import { 
-  LayoutDashboard, Bell, MessageSquareWarning, ShieldAlert, Utensils, 
-  PlaneTakeoff, CreditCard, MessageCircle, Star, LogOut , CalendarDays
+import { useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard, Bell, MessageSquareWarning, ShieldAlert, Utensils,
+  PlaneTakeoff, CreditCard, MessageCircle, Star, LogOut, CalendarDays
 } from 'lucide-react';
 
 const Sidebar = ({ activePage, setActivePage }) => {
+  const navigate = useNavigate();
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -19,8 +22,9 @@ const Sidebar = ({ activePage, setActivePage }) => {
   ];
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
     localStorage.removeItem('studentData');
-    window.location.href = '/';
+    navigate('/');
   };
 
   return (
@@ -28,7 +32,7 @@ const Sidebar = ({ activePage, setActivePage }) => {
       <div className="sidebar-header">
         <h2>HOSTEL PORTAL</h2>
       </div>
-      
+
       <nav className="sidebar-menu">
         {menuItems.map(item => {
           const Icon = item.icon;
@@ -46,7 +50,7 @@ const Sidebar = ({ activePage, setActivePage }) => {
       </nav>
 
       <div className="sidebar-footer">
-        <button 
+        <button
           className="logout-button"
           onClick={handleLogout}
         >
