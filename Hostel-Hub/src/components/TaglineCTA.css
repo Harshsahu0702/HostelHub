@@ -1,0 +1,46 @@
+/* Tagline CTA Section */
+.tagline-cta-section {
+  width: 100%;
+  padding: 40px 0;
+  margin-left: 12%; /* Increased from 5% to 12% for more right shift */
+  box-sizing: border-box;
+
+}
+
+.tagline-cta-box {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.tagline-cta-heading {
+  font-size: 2.5rem;
+  color: #f8fafc; /* Soft white */
+  margin-bottom: 16px;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.tagline-cta-description {
+  font-size: 1.2rem;
+  color: #e2e8f0; /* Lighter shade of white */
+  line-height: 1.6;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tagline-cta-section {
+    margin-left: 30px; /* Increased from 20px to 30px for mobile */
+    padding: 30px 0;
+  }
+  
+  .tagline-cta-heading {
+    font-size: 2rem;
+  }
+  
+  .tagline-cta-description {
+    font-size: 1.1rem;
+  }
+}
