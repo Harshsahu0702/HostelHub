@@ -15,6 +15,39 @@ const AttendanceView = ({ adminProfile }) => {
   const adminToken = localStorage.getItem("token");
 
   /* ===============================
+     QR Scan Success Handler
+  =============================== */
+  const handleQRScanSuccess = async (decodedText) => {
+    try {
+      setLoading(true);
+      setError("");
+      setResult(null);
+      setShowQRScanner(false);
+
+      const res = await axios.post(
+        `${API_BASE}/scan`,
+        { qrToken: decodedText },
+        {
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        setResult(res.data.data);
+        fetchTodaySummary();
+      }
+    } catch (err) {
+      setError(
+        err?.response?.data?.message || "Failed to scan attendance"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ===============================
      Toggle Attendance Status
   =============================== */
   const handleToggleAttendance = async () => {
@@ -34,6 +67,14 @@ const AttendanceView = ({ adminProfile }) => {
         }
       );
 
+      if (res.data.success) {
+        // Update UI status immediately
+        setResult((prev) => ({
+          ...prev,
+          status: res.data.data.status,
+        }));
+        fetchTodaySummary();
+      }
     } catch (err) {
       setError(
         err?.response?.data?.message ||
@@ -44,9 +85,30 @@ const AttendanceView = ({ adminProfile }) => {
     }
   };
 
+  /* ===============================
+     Fetch Today's Summary
+  =============================== */
+  const fetchTodaySummary = async () => {
+    try {
+      const res = await axios.get(`${API_BASE}/today-summary`, {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      });
+
+      if (res.data.success) {
+        setSummary(res.data.data);
+      }
+    } catch {
+      console.error("Failed to fetch summary");
+    }
+  };
+
   return (
     <div className="attendance-view">
       <h2 style={{ marginBottom: "20px" }}>📋 Attendance Management</h2>
+
+      {/* ================= SUMMARY ================= */}
       <div className="card" style={{ marginBottom: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <UserCheck />
@@ -76,6 +138,8 @@ const AttendanceView = ({ adminProfile }) => {
           <p style={{ marginTop: "10px" }}>No data loaded</p>
         )}
       </div>
+
+      {/* ================= QR SCAN ================= */}
       <div className="card">
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <QrCode />
@@ -105,6 +169,7 @@ const AttendanceView = ({ adminProfile }) => {
           )}
         </div>
 
+        {/* ================= RESULT + TOGGLE ================= */}
         {result && (
           <div
             style={{
@@ -141,6 +206,7 @@ const AttendanceView = ({ adminProfile }) => {
         )}
       </div>
 
+      {/* QR Scanner Modal */}
       {showQRScanner && (
         <QRScanner
           onClose={() => setShowQRScanner(false)}

@@ -7,6 +7,8 @@ import {
   sendPersonalMessage,
 } from "../../services/api";
 
+import socket, { joinUserRoom } from "../../services/socket";
+
 /* ---------- MAIN COMPONENT ---------- */
 
 const AdminChatView = ({ adminProfile }) => {
@@ -21,6 +23,36 @@ const AdminChatView = ({ adminProfile }) => {
   const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const selectedStudentRef = useRef(null);
+
+  /* ---------- HELPERS ---------- */
+
+  const isNearBottom = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return true;
+    const threshold = 120;
+    return el.scrollHeight - el.scrollTop - el.clientHeight <= threshold;
+  };
+
+  const scrollToBottom = (behavior = "auto") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
+  };
+
+  const formatTime = (dateString) => {
+    const d = new Date(dateString);
+    return d.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  /* ---------- JOIN SOCKET ROOM ---------- */
+
+  useEffect(() => {
+    if (adminProfile?._id) {
+      joinUserRoom(adminProfile._id);
+    }
+  }, [adminProfile]);
 
   /* ---------- FETCH STUDENTS ---------- */
 
@@ -45,6 +77,36 @@ const AdminChatView = ({ adminProfile }) => {
     };
 
     fetchStudents();
+  }, []);
+
+  /* ---------- SOCKET LISTENER ---------- */
+
+  useEffect(() => {
+    const handler = (message) => {
+      const currentStudent = selectedStudentRef.current;
+      if (!currentStudent) return;
+
+      const shouldScroll = isNearBottom();
+
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === message._id)) return prev;
+
+        if (
+          String(message.senderId) === String(currentStudent._id) ||
+          String(message.receiverId) === String(currentStudent._id)
+        ) {
+          return [...prev, message];
+        }
+        return prev;
+      });
+
+      if (shouldScroll) {
+        setTimeout(() => scrollToBottom("smooth"), 0);
+      }
+    };
+
+    socket.on("personalMessage", handler);
+    return () => socket.off("personalMessage", handler);
   }, []);
 
   /* ---------- FETCH MESSAGES ON STUDENT CHANGE ---------- */

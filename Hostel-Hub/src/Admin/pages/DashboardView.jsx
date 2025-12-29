@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserPlus, Users, BedDouble, AlertCircle, MessageSquare, QrCode } from 'lucide-react';
 import { getRoomStats, getAllStudents } from '../../services/api';
 import QRScanner from '../components/QRScanner';
@@ -45,6 +45,7 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
                 const [roomStats, studentsRes, issuesRes] = await Promise.all([
                     getRoomStats().catch(() => ({ occupiedRooms: 0, totalRooms: 0 })),
                     getAllStudents().catch(() => ({ success: false, data: [] })),
+                    // axios.get('https://strivers-clone.onrender.com/api/issues').catch(() => ({ data: [] }))
                 ]);
 
                 const students = studentsRes.success ? studentsRes.data : [];
@@ -74,6 +75,14 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
         };
         fetchData();
     }, []);
+
+    const handleQRScanSuccess = (decodedText) => {
+        console.log('QR Code scanned:', decodedText);
+        // Here you can process the scanned QR code
+        // For example, mark attendance, validate student, etc.
+        alert(`QR Code scanned successfully!\nToken: ${decodedText}`);
+        setShowQRScanner(false);
+    };
 
     return (
         <div>

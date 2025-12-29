@@ -3,9 +3,18 @@ import { QrCode, X, Camera, CameraOff } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 
 const QRScanner = ({ onClose, onScanSuccess }) => {
+    const [isScanning, setIsScanning] = useState(false);
     const [error, setError] = useState('');
     const [cameraStarted, setCameraStarted] = useState(false);
     const html5QrCodeRef = useRef(null);
+
+    useEffect(() => {
+        // Auto-start scanner when component mounts
+        startScanner();
+        return () => {
+            stopScanner();
+        };
+    }, []);
 
     const handleClose = () => {
         stopScanner();
@@ -76,11 +85,16 @@ const QRScanner = ({ onClose, onScanSuccess }) => {
         });
     };
 
-    const handleManualScan = () => {
-        // For manual testing or fallback
-        const testToken = '3b082941-f513-4b9c-8d3f-c2d05a342bae';
-        onScanSuccess(testToken);
+    const onScanFailure = (errorMessage) => {
+        // Don't show error for every scan failure, only log it
+        console.warn('QR scan failure:', errorMessage);
     };
+
+    // const handleManualScan = () => {
+    //     // For manual testing or fallback
+    //     const testToken = '3b082941-f513-4b9c-8d3f-c2d05a342bae';
+    //     onScanSuccess(testToken);
+    // };
 
     return (
         <div className="modal-overlay" onClick={handleClose}>

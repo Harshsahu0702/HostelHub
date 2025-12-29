@@ -81,6 +81,8 @@ const CreateAdminView = () => {
     }
   };
 
+  /* ---------- UI ---------- */
+
   return (
     <div className="content-container">
       <SectionHeader
