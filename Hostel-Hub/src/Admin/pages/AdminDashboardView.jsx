@@ -109,25 +109,6 @@ const AdminDashboard = () => {
   // 🔹 SAME MENU CONFIG
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "room-allotment", label: "Room Allotment", icon: BedDouble },
-    {
-      id: "mess-management",
-      label: "Mess Management",
-      icon: Utensils,
-      subItems: [
-        { id: "mess-menu", label: "Mess Menu Update" },
-        { id: "mess-reviews", label: "Food Reviews & Ratings" },
-        { id: "mess-fees", label: "Mess Fee Status" },
-        { id: "mess-attendance", label: "Student Attendance" },
-      ],
-    },
-    { id: "registration", label: "Student Registration", icon: UserPlus },
-    { id: "credentials", label: "Student Credentials", icon: Shield },
-    { id: "issues", label: "Issues & Complaints", icon: AlertCircle },
-    { id: "departures", label: "Departure Requests", icon: Calendar },
-    { id: "chat", label: "Chat & Notices", icon: MessageSquare },
-    { id: "create-admin", label: "Create Admin", icon: UserPlus },
-    { id: "attendance", label: "Attendance", icon: Calendar },
   ];
 
   // 🔹 SAME SWITCH LOGIC (sirf views change hue hain)
@@ -144,32 +125,6 @@ const AdminDashboard = () => {
             getCreatedAtFromId={getCreatedAtFromId}
           />
         );
-      case "room-allotment":
-        return <RoomAllotmentView />;
-      case "registration":
-        return <StudentRegistrationView />;
-      case "credentials":
-        return <StudentCredentialsView />;
-      case "issues":
-        return <IssuesComplaintsView hostelId={adminProfile?.hostelId} />;
-      case "departures":
-        return <DeparturesView hostelId={adminProfile?.hostelId} />;
-      case "chat":
-        return <AdminChatView adminProfile={adminProfile} />;
-      case "mess-menu":
-        return <MessMenuView />;
-      case "mess-reviews":
-        return <MessReviewsView />;
-      case "mess-fees":
-        return <MessFeesView />;
-      case "mess-attendance":
-        return <MessAttendanceView />;
-      case "create-admin":
-        return <CreateAdminView />;
-      case "attendance":
-        return <AttendanceView adminProfile={adminProfile} />;
-      default:
-        return null;
     }
   };
 
