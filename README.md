@@ -172,5 +172,5 @@ Contributions, issues, and feature requests are welcome!
 ---
 
 <div align="center">
-  <p>Made with ❤️ by <strong>Harsh Sahu</strong></p>
+  <p>Made with ❤️ by <strong>DETROIT'S</strong></p>
 </div>
