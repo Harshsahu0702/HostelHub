@@ -16,7 +16,7 @@ const AccessCodeModal = ({ isOpen, onClose }) => {
     }
   };
 
- if (!isOpen) return null;
+  if (!isOpen) return null;
   return (
     <div style={{
       position: 'fixed',
@@ -32,7 +32,7 @@ const AccessCodeModal = ({ isOpen, onClose }) => {
       alignItems: 'center',
       zIndex: 1001,
     }}>
-       {/* Rest of your modal JSX remains the same */}
+      {/* Rest of your modal JSX remains the same */}
       <div style={{
         backgroundColor: 'rgba(15, 23, 42, 0.9)',
         padding: '2rem',
@@ -44,7 +44,7 @@ const AccessCodeModal = ({ isOpen, onClose }) => {
         boxShadow: '0 10px 50px rgba(0, 0, 0, 0.5)',
         backdropFilter: 'blur(10px)',
       }}>
-        <button 
+        <button
           onClick={onClose}
           style={{
             position: 'absolute',
@@ -97,7 +97,29 @@ const AccessCodeModal = ({ isOpen, onClose }) => {
             fontSize: '0.9rem',
             textAlign: 'center',
           }}>{error}</p>}
-          <p style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>For Judging - code=100</p>
+          <div style={{
+            marginTop: '1rem',
+            padding: '0.75rem',
+            background: 'rgba(59, 130, 246, 0.1)',
+            border: '1px solid rgba(59, 130, 246, 0.3)',
+            borderRadius: '8px',
+            fontSize: '0.85rem',
+            color: 'rgba(255,255,255,0.9)'
+          }}>
+            <p style={{ margin: '0 0 0.5rem', fontWeight: 'bold', color: '#60a5fa' }}>FOR JUDGING:</p>
+            <div style={{ marginBottom: '0.5rem' }}>
+              <strong>Admin Login:</strong><br />
+              Email: megh@gmail.com<br />
+              Password: megh<br />
+              <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>(Go to Admin Dashboard → Student Credentials → Show More for student logins)</span>
+            </div>
+            <div>
+              <strong>Student Login:</strong><br />
+              Email: Use registered email<br />
+              Password: Student's phone no.
+            </div>
+            <p style={{ margin: '0.75rem 0 0', fontWeight: 'bold', color: '#facc15' }}>Hostel Setup Access Code: 100</p>
+          </div>
           <button type="submit" style={{
             padding: '12px',
             borderRadius: '8px',
@@ -171,17 +193,17 @@ const HostelButton = () => {
         }
       `}</style>
 
-      <button 
-        className="simple-btn" 
+      <button
+        className="simple-btn"
         onClick={() => setIsModalOpen(true)}
       >
         Setup Your Hostel
         <span className="icon-arrow">➜</span>
       </button>
 
-      <AccessCodeModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <AccessCodeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
     </div>
   );
