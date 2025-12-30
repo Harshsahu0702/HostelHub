@@ -1,13 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AlertCircle, Send } from "lucide-react";
+import { AlertCircle, Send, Users } from "lucide-react";
 
 import {
   getAllStudents,
   getPersonalMessages,
   sendPersonalMessage,
+  getGroupMessages,
+  sendGroupMessage,
 } from "../../services/api";
 
-import socket, { joinUserRoom } from "../../services/socket";
+import socket, { joinUserRoom, joinHostelRoom } from "../../services/socket";
 
 /* ---------- MAIN COMPONENT ---------- */
 
@@ -16,6 +18,7 @@ const AdminChatView = ({ adminProfile }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [chatMode, setChatMode] = useState("personal"); // "personal" | "group"
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,6 +26,7 @@ const AdminChatView = ({ adminProfile }) => {
   const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const selectedStudentRef = useRef(null);
+  const chatModeRef = useRef("personal");
 
   /* ---------- HELPERS ---------- */
 
@@ -52,7 +56,16 @@ const AdminChatView = ({ adminProfile }) => {
     if (adminProfile?._id) {
       joinUserRoom(adminProfile._id);
     }
+    const hostelId = adminProfile?.hostelId?._id || adminProfile?.hostelId;
+    if (hostelId) {
+      joinHostelRoom(hostelId);
+    }
   }, [adminProfile]);
+
+  useEffect(() => {
+    selectedStudentRef.current = selectedStudent;
+    chatModeRef.current = chatMode;
+  }, [selectedStudent, chatMode]);
 
   /* ---------- FETCH STUDENTS ---------- */
 
@@ -82,7 +95,9 @@ const AdminChatView = ({ adminProfile }) => {
   /* ---------- SOCKET LISTENER ---------- */
 
   useEffect(() => {
-    const handler = (message) => {
+    const personalHandler = (message) => {
+      if (chatModeRef.current !== "personal") return; // Ignore if in group view
+
       const currentStudent = selectedStudentRef.current;
       if (!currentStudent) return;
 
@@ -105,21 +120,45 @@ const AdminChatView = ({ adminProfile }) => {
       }
     };
 
-    socket.on("personalMessage", handler);
-    return () => socket.off("personalMessage", handler);
+    const groupHandler = (message) => {
+      if (chatModeRef.current !== "group") return; // Ignore if in personal view
+
+      const shouldScroll = isNearBottom();
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === message._id)) return prev;
+        return [...prev, message];
+      });
+
+      if (shouldScroll) {
+        setTimeout(() => scrollToBottom("smooth"), 0);
+      }
+    };
+
+    socket.on("personalMessage", personalHandler);
+    socket.on("groupMessage", groupHandler);
+
+    return () => {
+      socket.off("personalMessage", personalHandler);
+      socket.off("groupMessage", groupHandler);
+    };
   }, []);
 
-  /* ---------- FETCH MESSAGES ON STUDENT CHANGE ---------- */
+  /* ---------- FETCH MESSAGES ON CHANGE ---------- */
 
   useEffect(() => {
-    if (!selectedStudent) return;
-
-    selectedStudentRef.current = selectedStudent;
-
     const fetchMessages = async () => {
+      setMessages([]); // Clear UI while loading
       try {
-        const res = await getPersonalMessages(selectedStudent._id);
-        if (res.success) {
+        let res;
+        if (chatMode === "personal") {
+          if (!selectedStudent) return;
+          res = await getPersonalMessages(selectedStudent._id);
+        } else {
+          // Group chat
+          res = await getGroupMessages();
+        }
+
+        if (res?.success) {
           setMessages(res.data || []);
           setTimeout(() => scrollToBottom("auto"), 0);
         }
@@ -129,18 +168,25 @@ const AdminChatView = ({ adminProfile }) => {
     };
 
     fetchMessages();
-  }, [selectedStudent]);
+  }, [chatMode, selectedStudent]);
 
   /* ---------- SEND MESSAGE ---------- */
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedStudent) return;
+    if (!newMessage.trim()) return;
+    if (chatMode === "personal" && !selectedStudent) return;
 
     try {
       const text = newMessage;
       setNewMessage("");
 
-      const res = await sendPersonalMessage(selectedStudent._id, text);
+      let res;
+      if (chatMode === "personal") {
+        res = await sendPersonalMessage(selectedStudent._id, text);
+      } else {
+        res = await sendGroupMessage(text);
+      }
+
       const created = res?.data;
 
       if (created?._id) {
@@ -183,80 +229,139 @@ const AdminChatView = ({ adminProfile }) => {
 
   return (
     <div className="chat-container">
-      {/* ---------- STUDENT LIST ---------- */}
-      <div className="chat-sidebar">
-        <div className="chat-search">
-          <input
-            type="text"
-            placeholder="Search student..."
-            className="form-input"
-          />
+      {/* ---------- SIDEBAR ---------- */}
+      <div className="chat-sidebar" style={{ display: 'flex', flexDirection: 'column' }}>
+        {/* Toggle Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)' }}>
+          <button
+            onClick={() => setChatMode("personal")}
+            style={{
+              flex: 1,
+              padding: '1rem',
+              background: chatMode === 'personal' ? 'var(--bg-secondary)' : 'transparent',
+              border: 'none',
+              borderBottom: chatMode === 'personal' ? '2px solid var(--primary-color)' : 'none',
+              cursor: 'pointer',
+              fontWeight: 600,
+              color: chatMode === 'personal' ? 'var(--primary-color)' : 'var(--text-secondary)'
+            }}
+          >
+            Personal
+          </button>
+          <button
+            onClick={() => setChatMode("group")}
+            style={{
+              flex: 1,
+              padding: '1rem',
+              background: chatMode === 'group' ? 'var(--bg-secondary)' : 'transparent',
+              border: 'none',
+              borderBottom: chatMode === 'group' ? '2px solid var(--primary-color)' : 'none',
+              cursor: 'pointer',
+              fontWeight: 600,
+              color: chatMode === 'group' ? 'var(--primary-color)' : 'var(--text-secondary)'
+            }}
+          >
+            Hostel Group
+          </button>
         </div>
 
-        <div className="chat-list">
-          {students.map((student) => (
-            <div
-              key={student._id}
-              className={`chat-item ${
-                selectedStudent?._id === student._id ? "active" : ""
-              }`}
-              onClick={() => setSelectedStudent(student)}
-            >
-              <div className="avatar-placeholder">
-                {student.fullName
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </div>
-              <div>
-                <h5 style={{ fontSize: "0.875rem", fontWeight: 500 }}>
-                  {student.fullName}
-                </h5>
-                <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                  {student.roomAllocated || "No room"}
-                </p>
-              </div>
+        {chatMode === "personal" ? (
+          <>
+            <div className="chat-search">
+              <input
+                type="text"
+                placeholder="Search student..."
+                className="form-input"
+              />
             </div>
-          ))}
-        </div>
+            <div className="chat-list" style={{ flex: 1, overflowY: 'auto' }}>
+              {students.map((student) => (
+                <div
+                  key={student._id}
+                  className={`chat-item ${selectedStudent?._id === student._id ? "active" : ""
+                    }`}
+                  onClick={() => setSelectedStudent(student)}
+                >
+                  <div className="avatar-placeholder">
+                    {student.fullName
+                      ?.split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </div>
+                  <div>
+                    <h5 style={{ fontSize: "0.875rem", fontWeight: 500 }}>
+                      {student.fullName}
+                    </h5>
+                    <p style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
+                      {student.roomAllocated || "No room"}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+            <div style={{
+              width: '3rem', height: '3rem', background: '#e0f2fe', color: '#0ea5e9',
+              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem'
+            }}>
+              <Users size={24} />
+            </div>
+            <h3>Hostel Group</h3>
+            <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
+              Chat with everyone in your hostel. Students and Admins can see these messages.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ---------- CHAT MAIN ---------- */}
       <div className="chat-main">
-        {selectedStudent ? (
+        {chatMode === "personal" && !selectedStudent ? (
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-secondary)" }}>
+            Select a student to start chatting
+          </div>
+        ) : (
           <>
             <div className="chat-header">
               <h3 style={{ fontWeight: 600 }}>
-                {selectedStudent.fullName} (
-                {selectedStudent.roomAllocated || "No room"})
+                {chatMode === "personal"
+                  ? `${selectedStudent?.fullName} (${selectedStudent?.roomAllocated || "No room"})`
+                  : "Hostel Group Chat"
+                }
               </h3>
             </div>
 
             <div className="chat-messages" ref={messagesContainerRef}>
               {messages.length > 0 ? (
-                messages.map((msg) => (
-                  <div
-                    key={msg._id}
-                    className={`message ${
-                      msg.senderType === "admin" ? "sent" : "received"
-                    }`}
-                  >
-                    <p>{msg.text}</p>
-                    <span className="msg-time">
-                      {formatTime(msg.createdAt)}
-                    </span>
-                  </div>
-                ))
+                messages.map((msg) => {
+                  // For group chat, determine if it's "me"
+                  // Admin ID check might need adminProfile._id
+                  const isMe = String(msg.senderId) === String(adminProfile?._id);
+
+                  return (
+                    <div
+                      key={msg._id}
+                      className={`message ${isMe ? "sent" : "received"}`}
+                    >
+                      {/* Show sender name for group chat if received */}
+                      {chatMode === "group" && !isMe && (
+                        <div style={{ fontSize: '0.7rem', fontWeight: 600, marginBottom: 2, color: 'var(--text-secondary)' }}>
+                          {msg.senderName || "Unknown"}
+                        </div>
+                      )}
+                      <p>{msg.text}</p>
+                      <span className="msg-time">
+                        {formatTime(msg.createdAt)}
+                      </span>
+                    </div>
+                  );
+                })
               ) : (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "2rem",
-                    color: "var(--text-secondary)",
-                  }}
-                >
+                <div style={{ textAlign: "center", padding: "2rem", color: "var(--text-secondary)" }}>
                   No messages yet. Start a conversation!
                 </div>
               )}
@@ -281,18 +386,6 @@ const AdminChatView = ({ adminProfile }) => {
               </button>
             </div>
           </>
-        ) : (
-          <div
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "var(--text-secondary)",
-            }}
-          >
-            Select a student to start chatting
-          </div>
         )}
       </div>
     </div>

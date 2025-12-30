@@ -39,7 +39,7 @@ router.get(
 
 // send group message
 router.post(
-  "/group",
+  "/group/send",
   authMiddleware,
   sendGroupMessage
 );

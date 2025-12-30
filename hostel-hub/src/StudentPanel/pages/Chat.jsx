@@ -1,13 +1,16 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Send } from "lucide-react";
+import { Send, Users } from "lucide-react";
 import { useStudent } from "../../contexts/StudentContext";
 import {
   getAdminsForChat,
   getPersonalMessages,
   sendPersonalMessage,
+  getGroupMessages,
+  sendGroupMessage,
 } from "../../services/api";
 import socket, {
   joinUserRoom,
+  joinHostelRoom,
 } from "../../services/socket";
 
 const Chat = () => {
@@ -15,6 +18,7 @@ const Chat = () => {
 
   const [admins, setAdmins] = useState([]);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
+  const [chatMode, setChatMode] = useState("personal"); // "personal" | "group"
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -23,6 +27,7 @@ const Chat = () => {
   const selectedAdminRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const chatModeRef = useRef("personal");
 
   const isNearBottom = () => {
     const el = messagesContainerRef.current;
@@ -40,35 +45,55 @@ const Chat = () => {
     if (!student?._id) return;
 
     joinUserRoom(student._id);
+    if (student.hostelId) {
+      joinHostelRoom(student.hostelId);
+    }
+  }, [student]);
 
-    const handleIncomingMessage = (message) => {
+  useEffect(() => {
+    selectedAdminRef.current = selectedAdmin;
+    chatModeRef.current = chatMode;
+  }, [selectedAdmin, chatMode]);
+
+  useEffect(() => {
+    const handlePersonalMessage = (message) => {
+      if (chatModeRef.current !== 'personal') return;
+
       const currentAdmin = selectedAdminRef.current;
       if (!currentAdmin) return;
 
-      // show only messages related to currently selected admin
       if (
         String(message.senderId) === String(currentAdmin._id) ||
         String(message.receiverId) === String(currentAdmin._id)
       ) {
         const shouldScroll = isNearBottom();
         setMessages((prev) => {
-          // prevent duplicate messages
           if (prev.some((m) => m._id === message._id)) return prev;
           return [...prev, message];
         });
-
-        if (shouldScroll) {
-          setTimeout(() => scrollToBottom("smooth"), 0);
-        }
+        if (shouldScroll) setTimeout(() => scrollToBottom("smooth"), 0);
       }
     };
 
-    socket.on("personalMessage", handleIncomingMessage);
+    const handleGroupMessage = (message) => {
+      if (chatModeRef.current !== 'group') return;
+
+      const shouldScroll = isNearBottom();
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === message._id)) return prev;
+        return [...prev, message];
+      });
+      if (shouldScroll) setTimeout(() => scrollToBottom("smooth"), 0);
+    };
+
+    socket.on("personalMessage", handlePersonalMessage);
+    socket.on("groupMessage", handleGroupMessage);
 
     return () => {
-      socket.off("personalMessage", handleIncomingMessage);
+      socket.off("personalMessage", handlePersonalMessage);
+      socket.off("groupMessage", handleGroupMessage);
     };
-  }, [student]);
+  }, []);
 
   /* ================= LOAD ADMINS ================= */
   useEffect(() => {
@@ -91,14 +116,21 @@ const Chat = () => {
 
   /* ================= LOAD MESSAGES ================= */
   useEffect(() => {
-    if (!selectedAdmin) return;
-
-    selectedAdminRef.current = selectedAdmin;
-
     const loadMessages = async () => {
       setLoading(true);
       try {
-        const res = await getPersonalMessages(selectedAdmin._id);
+        let res;
+        if (chatMode === 'personal') {
+          if (!selectedAdmin) {
+            setLoading(false);
+            return;
+          }
+          res = await getPersonalMessages(selectedAdmin._id);
+        } else {
+          // Group Chat
+          res = await getGroupMessages();
+        }
+
         setMessages(res.data || []);
         setTimeout(() => scrollToBottom("auto"), 0);
       } catch (err) {
@@ -110,18 +142,24 @@ const Chat = () => {
     };
 
     loadMessages();
-  }, [selectedAdmin]);
+  }, [chatMode, selectedAdmin]);
 
   /* ================= SEND MESSAGE ================= */
   const handleSend = async (e) => {
     e.preventDefault();
-    if (!input.trim() || !selectedAdmin) return;
+    if (!input.trim()) return;
+    if (chatMode === "personal" && !selectedAdmin) return;
 
     try {
       const text = input;
       setInput("");
 
-      const res = await sendPersonalMessage(selectedAdmin._id, text);
+      let res;
+      if (chatMode === "personal") {
+        res = await sendPersonalMessage(selectedAdmin._id, text);
+      } else {
+        res = await sendGroupMessage(text);
+      }
 
       const created = res?.data;
       if (created?._id) {
@@ -131,7 +169,6 @@ const Chat = () => {
         });
         setTimeout(() => scrollToBottom("smooth"), 0);
       }
-      // socket will update UI
     } catch (err) {
       console.error("Failed to send message", err);
     }
@@ -146,51 +183,92 @@ const Chat = () => {
         padding: 0,
       }}
     >
-      {/* ================= LEFT: ADMIN LIST ================= */}
+      {/* ================= LEFT: SIDEBAR ================= */}
       <div
         style={{
           width: 260,
           borderRight: "1px solid var(--border)",
-          overflowY: "auto",
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
-        <div
-          style={{
-            padding: "12px 16px",
-            fontWeight: 700,
-            borderBottom: "1px solid var(--border)",
-          }}
-        >
-          Admins
-        </div>
-
-        {admins.map((admin) => (
-          <div
-            key={admin._id}
-            onClick={() => setSelectedAdmin(admin)}
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
+          <button
+            onClick={() => setChatMode("personal")}
             style={{
-              padding: "12px 16px",
-              cursor: "pointer",
-              background:
-                selectedAdmin?._id === admin._id
-                  ? "rgba(79,70,229,0.1)"
-                  : "transparent",
-              borderLeft:
-                selectedAdmin?._id === admin._id
-                  ? "4px solid var(--primary)"
-                  : "4px solid transparent",
+              flex: 1,
+              padding: '12px',
+              background: chatMode === 'personal' ? '#f1f5f9' : 'transparent',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer',
+              color: chatMode === 'personal' ? 'var(--primary)' : '#64748b'
             }}
           >
-            <div style={{ fontWeight: 600 }}>{admin.name}</div>
-            <div style={{ fontSize: "0.8rem", color: "#666" }}>
-              {admin.role || "Admin"}
-            </div>
-          </div>
-        ))}
+            Admins
+          </button>
+          <button
+            onClick={() => setChatMode("group")}
+            style={{
+              flex: 1,
+              padding: '12px',
+              background: chatMode === 'group' ? '#f1f5f9' : 'transparent',
+              border: 'none',
+              fontWeight: 600,
+              cursor: 'pointer',
+              color: chatMode === 'group' ? 'var(--primary)' : '#64748b'
+            }}
+          >
+            Group
+          </button>
+        </div>
 
-        {admins.length === 0 && (
-          <div style={{ padding: 16, color: "#777" }}>
-            No admins found
+        {chatMode === "personal" ? (
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            <div style={{ padding: "12px 16px", fontWeight: 700, borderBottom: "1px solid var(--border)" }}>
+              Admins
+            </div>
+            {admins.map((admin) => (
+              <div
+                key={admin._id}
+                onClick={() => setSelectedAdmin(admin)}
+                style={{
+                  padding: "12px 16px",
+                  cursor: "pointer",
+                  background:
+                    selectedAdmin?._id === admin._id
+                      ? "rgba(79,70,229,0.1)"
+                      : "transparent",
+                  borderLeft:
+                    selectedAdmin?._id === admin._id
+                      ? "4px solid var(--primary)"
+                      : "4px solid transparent",
+                }}
+              >
+                <div style={{ fontWeight: 600 }}>{admin.name}</div>
+                <div style={{ fontSize: "0.8rem", color: "#666" }}>
+                  {admin.role || "Admin"}
+                </div>
+              </div>
+            ))}
+            {admins.length === 0 && (
+              <div style={{ padding: 16, color: "#777" }}>
+                No admins found
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{ padding: '1.5rem', textAlign: 'center', color: '#64748b', flex: 1 }}>
+            <div style={{
+              width: '3rem', height: '3rem', background: '#e0f2fe', color: '#0ea5e9',
+              borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem'
+            }}>
+              <Users size={24} />
+            </div>
+            <h4 style={{ margin: '0 0 0.5rem 0', color: '#334155' }}>Hostel Group</h4>
+            <p style={{ fontSize: '0.875rem', margin: 0 }}>
+              Official group chat for your hostel.
+            </p>
           </div>
         )}
       </div>
@@ -211,9 +289,11 @@ const Chat = () => {
             fontWeight: 700,
           }}
         >
-          {selectedAdmin
-            ? `Chat with ${selectedAdmin.name}`
-            : "Select an Admin"}
+          {chatMode === "personal" ? (
+            selectedAdmin ? `Chat with ${selectedAdmin.name}` : "Select an Admin"
+          ) : (
+            "Hostel Group Chat"
+          )}
         </div>
 
         {/* MESSAGES */}
@@ -229,9 +309,7 @@ const Chat = () => {
           {loading && <div>Loading chat...</div>}
 
           {messages.map((m) => {
-            const isMe =
-              m.senderType === "student" &&
-              String(m.senderId) === String(student?._id);
+            const isMe = String(m.senderId) === String(student?._id);
 
             return (
               <div
@@ -249,8 +327,15 @@ const Chat = () => {
                     color: isMe ? "#fff" : "#000",
                     borderRadius: 12,
                     maxWidth: "70%",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.05)"
                   }}
                 >
+                  {/* Show sender name for group chat if received */}
+                  {chatMode === "group" && !isMe && (
+                    <div style={{ fontSize: '0.7rem', fontWeight: 600, marginBottom: 2, color: '#64748b' }}>
+                      {m.senderName || "Unknown"}
+                    </div>
+                  )}
                   <div>{m.text}</div>
                   <div
                     style={{
@@ -277,25 +362,31 @@ const Chat = () => {
         </div>
 
         {/* INPUT */}
-        <form
-          onSubmit={handleSend}
-          style={{
-            padding: "16px",
-            borderTop: "1px solid var(--border)",
-            display: "flex",
-            gap: 10,
-          }}
-        >
-          <input
-            className="form-control"
-            placeholder="Type a message..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-          />
-          <button className="btn btn-primary" type="submit">
-            <Send size={18} />
-          </button>
-        </form>
+        {(chatMode === 'group' || selectedAdmin) ? (
+          <form
+            onSubmit={handleSend}
+            style={{
+              padding: "16px",
+              borderTop: "1px solid var(--border)",
+              display: "flex",
+              gap: 10,
+            }}
+          >
+            <input
+              className="form-control"
+              placeholder="Type a message..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+            />
+            <button className="btn btn-primary" type="submit">
+              <Send size={18} />
+            </button>
+          </form>
+        ) : (
+          <div style={{ padding: '16px', textAlign: 'center', color: '#94a3b8' }}>
+            Select an admin to start chatting.
+          </div>
+        )}
       </div>
     </div>
   );

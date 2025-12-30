@@ -94,7 +94,7 @@ exports.sendGroupMessage = async (req, res) => {
       });
     }
 
-    const message = await ChatMessage.create({
+    let message = await ChatMessage.create({
       hostelId,
       chatType: "group",
       senderType: role,
@@ -102,12 +102,22 @@ exports.sendGroupMessage = async (req, res) => {
       text,
     });
 
+    // Populate to get sender name
+    message = await message.populate("senderId", "fullName name");
+
+    // Flatten for frontend
+    const cleanMsg = message.toObject();
+    if (cleanMsg.senderId) {
+      cleanMsg.senderName = cleanMsg.senderId.fullName || cleanMsg.senderId.name;
+      cleanMsg.senderId = cleanMsg.senderId._id;
+    }
+
     // 🔥 REAL-TIME EMIT (to hostel room)
-    req.io.to(hostelId.toString()).emit("groupMessage", message);
+    req.io.to(hostelId.toString()).emit("groupMessage", cleanMsg);
 
     res.status(201).json({
       success: true,
-      data: message,
+      data: cleanMsg,
     });
   } catch (error) {
     res.status(500).json({
@@ -125,11 +135,22 @@ exports.getGroupMessages = async (req, res) => {
     const messages = await ChatMessage.find({
       hostelId,
       chatType: "group",
-    }).sort({ createdAt: 1 });
+    })
+      .sort({ createdAt: 1 })
+      .populate("senderId", "fullName name");
+
+    const cleanMessages = messages.map((m) => {
+      const obj = m.toObject();
+      if (obj.senderId) {
+        obj.senderName = obj.senderId.fullName || obj.senderId.name;
+        obj.senderId = obj.senderId._id;
+      }
+      return obj;
+    });
 
     res.status(200).json({
       success: true,
-      data: messages,
+      data: cleanMessages,
     });
   } catch (error) {
     res.status(500).json({
