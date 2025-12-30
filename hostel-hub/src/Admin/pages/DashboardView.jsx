@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Users, BedDouble, AlertCircle, MessageSquare, QrCode } from 'lucide-react';
 import { getRoomStats, getAllStudents } from '../../services/api';
-import QRScanner from '../components/QRScanner';
+
 
 const StatCard = ({ title, value, colorClass, icon: Icon }) => (
     <div className="stat-card">
@@ -36,7 +36,7 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
         { title: 'New Messages', value: '0', colorClass: 'text-indigo bg-indigo-light', icon: MessageSquare },
     ]);
     const [recentAllocations, setRecentAllocations] = useState([]);
-    const [showQRScanner, setShowQRScanner] = useState(false);
+
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -76,13 +76,7 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
         fetchData();
     }, []);
 
-    const handleQRScanSuccess = (decodedText) => {
-        console.log('QR Code scanned:', decodedText);
-        // Here you can process the scanned QR code
-        // For example, mark attendance, validate student, etc.
-        alert(`QR Code scanned successfully!\nToken: ${decodedText}`);
-        setShowQRScanner(false);
-    };
+
 
     return (
         <div>
@@ -278,7 +272,7 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
 
                         <button
                             className="btn btn-primary"
-                            onClick={() => setShowQRScanner(true)}
+                            onClick={() => setActiveTab('attendance')}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -320,12 +314,7 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
                     </div>
                 </div>
 
-                {showQRScanner && (
-                    <QRScanner
-                        onClose={() => setShowQRScanner(false)}
-                        onScanSuccess={handleQRScanSuccess}
-                    />
-                )}
+                {/* QR Scanner Modal Removed - Redirects to AttendanceView instead */}
             </div>
         </div>
     );
