@@ -115,7 +115,7 @@ const AccessCodeModal = ({ isOpen, onClose }) => {
             </div>
             <div>
               <strong>Student Login:</strong><br />
-              Email: Use registered email<br />
+              Email: Student's registered email<br />
               Password: Student's phone no.
             </div>
             <p style={{ margin: '0.75rem 0 0', fontWeight: 'bold', color: '#facc15' }}>Hostel Setup Access Code: 100</p>
