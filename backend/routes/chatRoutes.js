@@ -7,6 +7,8 @@ const {
   sendGroupMessage,
   getGroupMessages,
   getAdminsForChat,
+  getUnreadCount,
+  getRecentChats,
 } = require("../controllers/chatController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -29,6 +31,20 @@ router.get(
   "/personal/:receiverId",
   authMiddleware,
   getPersonalMessages
+);
+
+// get unread count
+router.get(
+  "/unread",
+  authMiddleware,
+  getUnreadCount
+);
+
+// get recent chats (for sorting)
+router.get(
+  "/recent",
+  authMiddleware,
+  getRecentChats
 );
 
 /**

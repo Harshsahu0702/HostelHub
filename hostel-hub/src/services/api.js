@@ -165,6 +165,16 @@ export const getGroupMessages = async () => {
   return res.data;
 };
 
+export const getUnreadMessageCount = async () => {
+  const res = await api.get("/chat/unread");
+  return res.data;
+};
+
+export const getRecentChats = async () => {
+  const res = await api.get("/chat/recent");
+  return res.data;
+};
+
 /* ================= ADMIN APIs ================= */
 export const getAdminByEmail = async (email) => {
   const res = await api.get(`/admins/${encodeURIComponent(email)}`);

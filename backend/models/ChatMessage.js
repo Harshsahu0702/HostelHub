@@ -49,6 +49,12 @@ const ChatMessageSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+
+    // Read status (For personal messages mainly)
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true, // createdAt & updatedAt

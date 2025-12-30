@@ -7,6 +7,7 @@ import {
   sendPersonalMessage,
   getGroupMessages,
   sendGroupMessage,
+  getRecentChats,
 } from "../../services/api";
 
 import socket, { joinUserRoom, joinHostelRoom } from "../../services/socket";
@@ -67,19 +68,39 @@ const AdminChatView = ({ adminProfile }) => {
     chatModeRef.current = chatMode;
   }, [selectedStudent, chatMode]);
 
-  /* ---------- FETCH STUDENTS ---------- */
+  /* ---------- FETCH STUDENTS & SORT ---------- */
 
   useEffect(() => {
     const fetchStudents = async () => {
       try {
-        const res = await getAllStudents();
-        if (res.success) {
-          setStudents(res.data || []);
-          if (res.data && res.data.length > 0) {
-            setSelectedStudent(res.data[0]);
+        const [studentsRes, recentRes] = await Promise.all([
+          getAllStudents(),
+          getRecentChats()
+        ]);
+
+        if (studentsRes.success) {
+          let allStudents = studentsRes.data || [];
+          const recent = recentRes.success ? recentRes.data : []; // [{ _id: studentId, lastMessageAt: ... }]
+
+          // Map of studentId -> lastMessageAt
+          const recentMap = {};
+          recent.forEach(r => {
+            recentMap[r._id] = new Date(r.lastMessageAt).getTime();
+          });
+
+          // Sort students: ones with recent messages first
+          allStudents.sort((a, b) => {
+            const timeA = recentMap[a._id] || 0;
+            const timeB = recentMap[b._id] || 0;
+            return timeB - timeA; // Descending
+          });
+
+          setStudents(allStudents);
+          if (allStudents.length > 0) {
+            setSelectedStudent(allStudents[0]);
           }
         } else {
-          setError(res.message || "Failed to fetch students");
+          setError(studentsRes.message || "Failed to fetch students");
         }
       } catch (err) {
         console.error(err);

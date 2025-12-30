@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Users, BedDouble, AlertCircle, MessageSquare, QrCode } from 'lucide-react';
-import { getRoomStats, getAllStudents, getComplaintsForAdmin, getAntiRaggingForAdmin } from '../../services/api';
+import { getRoomStats, getAllStudents, getComplaintsForAdmin, getAntiRaggingForAdmin, getUnreadMessageCount } from '../../services/api';
 
 
-const StatCard = ({ title, value, colorClass, icon: Icon }) => (
-    <div className="stat-card">
+const StatCard = ({ title, value, colorClass, icon: Icon, onClick }) => (
+    <div
+        className="stat-card"
+        onClick={onClick}
+        style={{ cursor: onClick ? 'pointer' : 'default', transition: 'transform 0.2s' }}
+        onMouseOver={e => onClick && (e.currentTarget.style.transform = 'translateY(-2px)')}
+        onMouseOut={e => onClick && (e.currentTarget.style.transform = 'translateY(0)')}
+    >
         <div className="stat-content">
             <p className="stat-label">{title}</p>
             <h3 className="stat-value">{value}</h3>
@@ -44,11 +50,12 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
             try {
                 const hostelId = adminProfile?.hostelId?._id || adminProfile?.hostelId;
 
-                const [roomStats, studentsRes, complaintsRes, antiRaggingRes] = await Promise.all([
+                const [roomStats, studentsRes, complaintsRes, antiRaggingRes, unreadRes] = await Promise.all([
                     getRoomStats().catch(() => ({ occupiedRooms: 0, totalRooms: 0 })),
                     getAllStudents().catch(() => ({ success: false, data: [] })),
                     hostelId ? getComplaintsForAdmin(hostelId).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
-                    hostelId ? getAntiRaggingForAdmin(hostelId).catch(() => ({ data: [] })) : Promise.resolve({ data: [] })
+                    hostelId ? getAntiRaggingForAdmin(hostelId).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+                    getUnreadMessageCount().catch(() => ({ count: 0 }))
                 ]);
 
                 const students = studentsRes.success ? studentsRes.data : [];
@@ -62,12 +69,19 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
                 const pendingAntiRagging = antiRagging.filter(r => (r.status || 'Pending') === 'Pending');
 
                 const totalPendingIssues = pendingComplaints.length + pendingAntiRagging.length;
+                const unreadCount = unreadRes.count || 0;
 
                 setStats([
                     { title: 'Total Students', value: students.length.toString(), colorClass: 'text-blue bg-blue-light', icon: Users },
                     { title: 'Rooms Occupied', value: `${roomStats.occupiedRooms || 0} / ${roomStats.totalRooms || 0}`, colorClass: 'text-green bg-green-light', icon: BedDouble },
                     { title: 'Pending Issues', value: totalPendingIssues.toString(), colorClass: 'text-orange bg-orange-light', icon: AlertCircle },
-                    { title: 'New Messages', value: '5', colorClass: 'text-indigo bg-indigo-light', icon: MessageSquare },
+                    {
+                        title: 'New Messages',
+                        value: unreadCount.toString(),
+                        colorClass: 'text-indigo bg-indigo-light',
+                        icon: MessageSquare,
+                        onClick: () => setActiveTab('chat')
+                    },
                 ]);
 
                 setRecentAllocations(students.slice(0, 5).map(s => ({
@@ -217,6 +231,7 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
                         value={stat.value}
                         colorClass={stat.colorClass}
                         icon={stat.icon}
+                        onClick={stat.onClick}
                     />
                 ))}
             </div>

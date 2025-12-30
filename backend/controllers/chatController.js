@@ -1,5 +1,6 @@
 const ChatMessage = require("../models/ChatMessage");
 const Admin = require("../models/Admin");
+const mongoose = require("mongoose");
 
 /**
  * =========================
@@ -63,6 +64,18 @@ exports.getPersonalMessages = async (req, res) => {
       ],
     }).sort({ createdAt: 1 });
 
+    // Mark messages as read where I am the receiver
+    await ChatMessage.updateMany(
+      {
+        hostelId,
+        chatType: "personal",
+        senderId: receiverId,
+        receiverId: id,
+        isRead: false
+      },
+      { isRead: true }
+    );
+
     res.status(200).json({
       success: true,
       data: messages,
@@ -71,6 +84,30 @@ exports.getPersonalMessages = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+// Count unread personal messages
+exports.getUnreadCount = async (req, res) => {
+  try {
+    const { id, hostelId } = req.user;
+
+    const count = await ChatMessage.countDocuments({
+      hostelId,
+      receiverId: id,
+      chatType: "personal",
+      isRead: false
+    });
+
+    res.status(200).json({
+      success: true,
+      count
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
     });
   }
 };
@@ -186,6 +223,57 @@ exports.getAdminsForChat = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+};
+
+// =========================
+// GET RECENT CHATS (For sorting sidebar)
+// =========================
+exports.getRecentChats = async (req, res) => {
+  try {
+    const { id, hostelId } = req.user;
+
+    // Aggregate to find last message for each conversation
+    const recent = await ChatMessage.aggregate([
+      {
+        $match: {
+          hostelId: new mongoose.Types.ObjectId(hostelId),
+          chatType: "personal",
+          $or: [
+            { senderId: new mongoose.Types.ObjectId(id) },
+            { receiverId: new mongoose.Types.ObjectId(id) }
+          ]
+        }
+      },
+      {
+        $addFields: {
+          otherPartyId: {
+            $cond: { if: { $eq: ["$senderType", "student"] }, then: "$senderId", else: "$receiverId" }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$otherPartyId",
+          lastMessageAt: { $max: "$createdAt" },
+          lastMessage: { $last: "$text" }
+        }
+      },
+      {
+        $sort: { lastMessageAt: -1 }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: recent // [{ _id: studentId, lastMessageAt: ... }]
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
     });
   }
 };
