@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Utensils, LayoutDashboard, CreditCard, QrCode, X, PlaneTakeoff } from 'lucide-react';
+import { Utensils, LayoutDashboard, CreditCard, QrCode, X, PlaneTakeoff, MessageSquare } from 'lucide-react';
 import { useStudent } from '../../contexts/StudentContext';
 import QRCode from 'qrcode';
+import { getUnreadMessageCount } from '../../services/api';
 
 const Dashboard = ({ setActivePage }) => {
   const [showQR, setShowQR] = useState(false);
@@ -9,18 +10,37 @@ const Dashboard = ({ setActivePage }) => {
 
   const { student, loading } = useStudent() || {};
 
+  const [unreadCount, setUnreadCount] = useState(0);
+
   useEffect(() => {
     if (student?.qrToken) {
       QRCode.toDataURL(student.qrToken, (err, url) => {
         setQrCode(url);
       });
     }
+
+    const fetchUnread = async () => {
+      try {
+        const res = await getUnreadMessageCount();
+        setUnreadCount(res.count || 0);
+      } catch (err) {
+        console.error("Failed to fetch unread count", err);
+      }
+    };
+    fetchUnread();
   }, [student]);
 
   const stats = [
     { label: "Mess Status", value: "Open", icon: Utensils, color: "#fef3c7", iconColor: "#92400e" },
     { label: "Current Room", value: loading ? 'Loading...' : (student?.roomAllocated || 'Not Found'), icon: LayoutDashboard, color: "#e0e7ff", iconColor: "#3730a3" },
-    { label: "Fees Pending", value: 'Not Found', icon: CreditCard, color: "#fee2e2", iconColor: "#991b1b" },
+    {
+      label: "New Messages",
+      value: unreadCount.toString(),
+      icon: MessageSquare,
+      color: "#dbeafe",
+      iconColor: "#1d4ed8",
+      action: () => setActivePage('chat')
+    },
     { label: "Attendance", value: "Your QR", icon: QrCode, color: "#dcfce7", iconColor: "#166534", action: () => setShowQR(true) },
   ];
 
