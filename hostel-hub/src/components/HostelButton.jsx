@@ -106,6 +106,7 @@ const AccessCodeModal = ({ isOpen, onClose }) => {
             fontSize: '0.85rem',
             color: 'rgba(255,255,255,0.9)'
           }}>
+             <p style={{ margin: '0.75rem 0 0', fontWeight: 'bold', color: '#facc15' }}>Hostel Setup Access Code: 100</p>
             <p style={{ margin: '0 0 0.5rem', fontWeight: 'bold', color: '#60a5fa' }}>FOR JUDGING:</p>
             <div style={{ marginBottom: '0.5rem' }}>
               <strong>Admin Login:</strong><br />
@@ -118,7 +119,6 @@ const AccessCodeModal = ({ isOpen, onClose }) => {
               Email: Student's registered email<br />
               Password: Student's phone no.
             </div>
-            <p style={{ margin: '0.75rem 0 0', fontWeight: 'bold', color: '#facc15' }}>Hostel Setup Access Code: 100</p>
           </div>
           <button type="submit" style={{
             padding: '12px',
