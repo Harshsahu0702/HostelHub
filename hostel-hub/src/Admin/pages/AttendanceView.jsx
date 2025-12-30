@@ -3,7 +3,7 @@ import axios from "axios";
 import { QrCode, RefreshCcw, UserCheck } from "lucide-react";
 import QRScanner from "../components/QRScanner";
 
-const API_BASE = "http://localhost:5000/api/attendance";
+const API_BASE = "https://hostelhub-it51.onrender.com/api/attendance";
 
 const AttendanceView = ({ adminProfile }) => {
   const [loading, setLoading] = useState(false);

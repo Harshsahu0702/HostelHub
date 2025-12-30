@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 
 // Backend base URL
-const SOCKET_URL = "http://localhost:5000";
+const SOCKET_URL = "https://hostelhub-it51.onrender.com";
 
 // Create socket instance
 const socket = io(SOCKET_URL, {

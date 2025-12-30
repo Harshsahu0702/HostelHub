@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { CalendarDays } from "lucide-react";
 
-const API_BASE = "http://localhost:5000/api/attendance";
+const API_BASE = "https://hostelhub-it51.onrender.com/api/attendance";
 
 const StudentAttendanceView = () => {
   const [attendance, setAttendance] = useState([]);

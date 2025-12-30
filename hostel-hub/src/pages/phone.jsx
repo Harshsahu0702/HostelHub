@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Home, Mail, Lock, UserCheck, Briefcase, 
+import {
+  Home, Mail, Lock, UserCheck, Briefcase,
   ArrowRight, Sparkles, X, KeyRound, ShieldCheck,
   ChevronRight, Loader2
 } from 'lucide-react';
@@ -103,7 +103,7 @@ const App = () => {
         };
 
         const res = await axios.post(
-          "http://localhost:5000/api/auth/student/login",
+          "https://hostelhub-it51.onrender.com/api/auth/student/login",
           studentCreds
         );
 
@@ -114,7 +114,7 @@ const App = () => {
         if (res?.data?.data) {
           localStorage.setItem("studentData", JSON.stringify(res.data.data));
         }
-        
+
         navigate("/student-dashboard");
       } else {
         const adminCreds = {
@@ -123,7 +123,7 @@ const App = () => {
         };
 
         const res = await axios.post(
-          "http://localhost:5000/api/auth/admin/login",
+          "https://hostelhub-it51.onrender.com/api/auth/admin/login",
           adminCreds
         );
 
@@ -493,17 +493,17 @@ const App = () => {
 
         <main className="glass-card">
           <div className="role-switch">
-            <div 
-              className="switch-pill" 
+            <div
+              className="switch-pill"
               style={{ transform: role === 'admin' ? 'translateX(100%)' : 'translateX(0)' }}
             />
-            <button 
+            <button
               className={`role-btn ${role === 'student' ? 'active' : ''}`}
               onClick={() => setRole('student')}
             >
               <UserCheck size={18} /> Student
             </button>
-            <button 
+            <button
               className={`role-btn ${role === 'admin' ? 'active' : ''}`}
               onClick={() => setRole('admin')}
             >
@@ -513,9 +513,9 @@ const App = () => {
 
           <form onSubmit={submitHandler} className="form-container">
             <div className="input-group">
-              <input 
-                type="text" 
-                className="input-field" 
+              <input
+                type="text"
+                className="input-field"
                 placeholder={role === 'admin' ? "Admin Identifier" : "Student Email"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -525,9 +525,9 @@ const App = () => {
             </div>
 
             <div className="input-group">
-              <input 
-                type="password" 
-                className="input-field" 
+              <input
+                type="password"
+                className="input-field"
                 placeholder="Secure Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -566,13 +566,13 @@ const App = () => {
       {isModalOpen && (
         <div className="overlay" onClick={() => setIsModalOpen(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
-            <button 
+            <button
               style={{ position: 'absolute', top: 20, right: 20, background: 'none', border: 'none', color: '#475569', cursor: 'pointer' }}
               onClick={() => setIsModalOpen(false)}
             >
               <X size={24} />
             </button>
-            
+
             <div style={{ textAlign: 'center' }}>
               <div style={{ width: 56, height: 56, background: 'rgba(59, 130, 246, 0.1)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 20px', color: '#3b82f6', justifyContent: 'center' }}>
                 <KeyRound size={28} />
@@ -582,8 +582,8 @@ const App = () => {
                 Enter the unique 8-character system key provided by your institution.
               </p>
 
-              <input 
-                className="otp-box" 
+              <input
+                className="otp-box"
                 placeholder="HUB-0000"
                 maxLength={8}
                 value={accessCode}
@@ -594,8 +594,8 @@ const App = () => {
                 autoFocus
               />
 
-              <button 
-                className="btn-primary" 
+              <button
+                className="btn-primary"
                 onClick={(e) => {
                   e.stopPropagation();
                   if (accessCode === '17102006') {

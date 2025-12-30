@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const API_BASE = "http://localhost:5000/api/attendance";
+const API_BASE = "https://hostelhub-it51.onrender.com/api/attendance";
 
 /* ===============================
    Helpers
@@ -55,7 +55,7 @@ const AdminStudentAttendanceCalendar = ({ studentId, onBack }) => {
       } catch (err) {
         setError(
           err?.response?.data?.message ||
-            "Failed to load attendance"
+          "Failed to load attendance"
         );
       } finally {
         setLoading(false);
