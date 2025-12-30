@@ -9,7 +9,7 @@ const app = express();
 
 /* ================= MIDDLEWARE ================= */
 app.use(cors({
-  origin: "http://localhost:5173", // frontend URL
+  origin: "https://hostel-hubb.vercel.app", // frontend URL
   credentials: true,
 }));
 app.use(express.json());
@@ -20,7 +20,7 @@ const server = http.createServer(app);
 /* ================= SOCKET.IO SETUP ================= */
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "https://hostel-hubb.vercel.app",
     methods: ["GET", "POST"],
     credentials: true,
   },
