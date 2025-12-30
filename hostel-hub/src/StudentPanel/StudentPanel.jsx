@@ -7,7 +7,6 @@ import Sidebar from "./components/Sidebar.jsx";
 import Header from "./components/Header";
 
 import Dashboard from "./pages/Dashboard";
-import Notifications from "./pages/Notifications";
 import Complaints from "./pages/Complaints";
 import AntiRagging from "./pages/AntiRagging";
 import Mess from "./pages/Mess";
@@ -37,7 +36,6 @@ export default function StudentPanel() {
   const renderContent = () => {
     switch (activePage) {
       case "dashboard": return <Dashboard setActivePage={setActivePage} />;
-      case "notifications": return <Notifications />;
       case "complaints": return <Complaints />;
       case "antiragging": return <AntiRagging />;
       case "mess": return <Mess />;

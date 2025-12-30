@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Bell, MessageSquareWarning, ShieldAlert, Utensils,
+  LayoutDashboard, MessageSquareWarning, ShieldAlert, Utensils,
   PlaneTakeoff, CreditCard, MessageCircle, Star, LogOut, CalendarDays
 } from 'lucide-react';
 
@@ -10,7 +10,6 @@ const Sidebar = ({ activePage, setActivePage }) => {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'complaints', label: 'Complaints', icon: MessageSquareWarning },
     { id: 'antiragging', label: 'Anti-Ragging', icon: ShieldAlert },
     { id: 'mess', label: 'Mess', icon: Utensils },
