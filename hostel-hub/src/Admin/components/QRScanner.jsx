@@ -10,8 +10,12 @@ const QRScanner = ({ onClose, onScanSuccess }) => {
 
     useEffect(() => {
         // Auto-start scanner when component mounts
-        startScanner();
+        // Add a small delay to ensure DOM is ready
+        const timer = setTimeout(() => {
+            startScanner();
+        }, 500);
         return () => {
+            clearTimeout(timer);
             stopScanner();
         };
     }, []);
@@ -124,50 +128,61 @@ const QRScanner = ({ onClose, onScanSuccess }) => {
                     </div>
                 )}
 
-                <div style={{ textAlign: 'center' }}>
+                <div style={{ position: 'relative', minHeight: '300px', marginBottom: '1rem' }}>
                     {!cameraStarted && !error && (
-                        <div style={{ padding: '2rem', background: '#f8fafc', borderRadius: '0.5rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-                                <div className="loading-spinner" style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    border: '4px solid #e2e8f0',
-                                    borderTop: '4px solid #3b82f6',
-                                    borderRadius: '50%',
-                                    animation: 'spin 1s linear infinite'
-                                }}></div>
-                            </div>
-                            <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            background: '#f8fafc',
+                            borderRadius: '0.5rem',
+                            zIndex: 10
+                        }}>
+                            <div className="loading-spinner" style={{
+                                width: '40px',
+                                height: '40px',
+                                border: '4px solid #e2e8f0',
+                                borderTop: '4px solid #3b82f6',
+                                borderRadius: '50%',
+                                animation: 'spin 1s linear infinite',
+                                marginBottom: '1rem'
+                            }}></div>
+                            <p style={{ color: '#64748b' }}>
                                 Starting camera...
                             </p>
                         </div>
                     )}
 
-                    <div style={{ marginBottom: '1rem' }}>
-                        <div id="qr-reader" style={{
-                            borderRadius: '0.5rem',
-                            overflow: 'hidden',
-                            minHeight: '300px',
-                            display: cameraStarted ? 'block' : 'none'
-                        }}></div>
-                    </div>
-
-                    {cameraStarted && (
-                        <button
-                            className="btn btn-danger"
-                            onClick={stopScanner}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                margin: '0 auto'
-                            }}
-                        >
-                            <CameraOff size={20} />
-                            Stop Scanner
-                        </button>
-                    )}
+                    <div id="qr-reader" style={{
+                        width: '100%',
+                        height: '100%',
+                        minHeight: '300px',
+                        borderRadius: '0.5rem',
+                        overflow: 'hidden'
+                    }}></div>
                 </div>
+
+                {cameraStarted && (
+                    <button
+                        className="btn btn-danger"
+                        onClick={stopScanner}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            margin: '1rem auto 0'
+                        }}
+                    >
+                        <CameraOff size={20} />
+                        Stop Scanner
+                    </button>
+                )}
 
                 <div style={{
                     marginTop: '1.5rem',
@@ -180,7 +195,7 @@ const QRScanner = ({ onClose, onScanSuccess }) => {
                     <strong>Instructions:</strong> Position the QR code within the frame to scan. The scanner will automatically detect and process the QR code.
                 </div>
             </div>
-        </div>
+        </div >
     );
 };
 
