@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Users, BedDouble, AlertCircle, MessageSquare, QrCode } from 'lucide-react';
-import { getRoomStats, getAllStudents } from '../../services/api';
+import { getRoomStats, getAllStudents, getComplaintsForAdmin, getAntiRaggingForAdmin } from '../../services/api';
 
 
 const StatCard = ({ title, value, colorClass, icon: Icon }) => (
@@ -42,20 +42,31 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [roomStats, studentsRes, issuesRes] = await Promise.all([
+                const hostelId = adminProfile?.hostelId?._id || adminProfile?.hostelId;
+
+                const [roomStats, studentsRes, complaintsRes, antiRaggingRes] = await Promise.all([
                     getRoomStats().catch(() => ({ occupiedRooms: 0, totalRooms: 0 })),
                     getAllStudents().catch(() => ({ success: false, data: [] })),
-                    // axios.get('https://strivers-clone.onrender.com/api/issues').catch(() => ({ data: [] }))
+                    hostelId ? getComplaintsForAdmin(hostelId).catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
+                    hostelId ? getAntiRaggingForAdmin(hostelId).catch(() => ({ data: [] })) : Promise.resolve({ data: [] })
                 ]);
 
                 const students = studentsRes.success ? studentsRes.data : [];
-                const issues = [];
-                const openIssues = issues.filter(i => i.status === 'Open');
+
+                // Process Pending Issues
+                const complaints = complaintsRes.data || [];
+                const antiRagging = antiRaggingRes.data || [];
+
+                const pendingComplaints = complaints.filter(c => (c.status || 'Pending') === 'Pending');
+                // Note: Assuming anti-ragging items rely on similar status field, defaulting to 'Pending' if missing
+                const pendingAntiRagging = antiRagging.filter(r => (r.status || 'Pending') === 'Pending');
+
+                const totalPendingIssues = pendingComplaints.length + pendingAntiRagging.length;
 
                 setStats([
                     { title: 'Total Students', value: students.length.toString(), colorClass: 'text-blue bg-blue-light', icon: Users },
                     { title: 'Rooms Occupied', value: `${roomStats.occupiedRooms || 0} / ${roomStats.totalRooms || 0}`, colorClass: 'text-green bg-green-light', icon: BedDouble },
-                    { title: 'Pending Issues', value: openIssues.length.toString(), colorClass: 'text-orange bg-orange-light', icon: AlertCircle },
+                    { title: 'Pending Issues', value: totalPendingIssues.toString(), colorClass: 'text-orange bg-orange-light', icon: AlertCircle },
                     { title: 'New Messages', value: '5', colorClass: 'text-indigo bg-indigo-light', icon: MessageSquare },
                 ]);
 
@@ -74,7 +85,7 @@ const DashboardView = ({ setActiveTab, adminProfile, dropdownOpen, setDropdownOp
             }
         };
         fetchData();
-    }, []);
+    }, [adminProfile]);
 
 
 
